@@ -1,0 +1,80 @@
+{
+  "id": "split_example",
+  "description": "The splitting is needed for S-2 processing",
+  "comment": "this is needed: {{ s2scenename|default(0) }} is extracted from s2scene!",
+  "template": {
+    "version": "1",
+    "list": [
+      {
+        "module": "g.region",
+        "id": "g.region_Polla",
+        "inputs": [
+          {
+            "param": "n",
+            "value": "4833110"
+          },
+          {
+            "param": "s",
+            "value": "4817480"
+          },
+          {
+            "param": "w",
+            "value": "745400"
+          },
+          {
+            "param": "e",
+            "value": "762490"
+          },
+          {
+            "param": "res",
+            "value": "10"
+          }
+        ]
+      },
+      {
+        "module": "r.mapcalc",
+        "id": "r.mapcalc_test",
+        "inputs": [
+          {
+            "param": "raster",
+            "value": "{{ s2scene }} = 8"
+          }
+        ]
+      },
+      {% if s2scene is defined %}
+      {% if s2scene.split('_')|length >= 6 %}
+      {% set s2scenename = "{{ s2scene.split('_')[5] }}_{{ s2scene.split('_')[2] }}" %}
+      {% else %}
+      {% set s2scenename = "s2scene" %}
+      {% endif %}
+      {% else %}
+      {% set s2scenename = "s2scene" %}
+      {% endif %}
+      {
+        "module": "r.mapcalc",
+        "id": "r.mapcalc_test",
+        "inputs": [
+          {
+            "param": "raster",
+            "value": "{{ s2scenename }} = 5"
+          }
+        ]
+      },
+      {
+        "id": "exporter_1",
+        "module": "exporter",
+        "comment": "Export indices as COG",
+        "outputs": [
+          {
+            "export": {
+              "type": "raster",
+              "format": "COG"
+            },
+            "param": "map",
+            "value": "{{ s2scenename }}"
+          }
+        ]
+      }
+    ]
+  }
+}

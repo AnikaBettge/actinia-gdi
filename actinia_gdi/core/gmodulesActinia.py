@@ -103,7 +103,6 @@ def get_template_undef(pc_name):
 def render_template(pc):
 
     tplPath = get_path_from_pc_name(pc)
-
     undef = get_template_undef(pc)
 
     kwargs = {}
@@ -126,6 +125,8 @@ def createProcessChainTemplateList():
 
     for tpl_string in tpl_list:
         tpl = pcTplEnv.get_template(tpl_string)
+
+        # import pdb; pdb.set_trace()
         try:
             pc_template = json.loads(tpl.render().replace('\n', ''))
         except:
@@ -445,6 +446,7 @@ def createActiniaModule(resourceBaseSelf, processchain):
 
     pc_template = render_template(processchain)
     pc_template_list_items = pc_template['template']['list']
+    # import pdb; pdb.set_trace()
     undef = get_template_undef(processchain)
 
     pc = PlaceholderCollector(resourceBaseSelf)
@@ -507,9 +509,12 @@ def filtered_variables(ast):
         filters = []
         f = node
         filters.append(f.name)
-        while isinstance(f.node, nodes.Filter):
+        while (isinstance(f.node, nodes.Filter)
+                or isinstance(f.node, nodes.Call)
+                or isinstance(f.node, nodes.Getattr)):
             f = f.node
-            filters.append(f.name)
+            if hasattr(f, 'name'):
+                filters.append(f.name)
         filters.reverse()
         results.append((f.node.name, filters))
     return results
@@ -562,8 +567,11 @@ def fillTemplateFromProcessChain(module):
             log.error('Required parameter "' + i + '" not in process chain!')
             return i
 
+    import pdb; pdb.set_trace()
+    
     # fill process chain template
     tpl = pcTplEnv.get_template(tpl_file)
+    # import pdb; pdb.set_trace()
     pc_template = json.loads(tpl.render(**kwargs).replace('\n', ''))
 
     return (pc_template['template']['list'])
